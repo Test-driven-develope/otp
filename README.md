@@ -1,4 +1,4 @@
-# TDD Project For (OTP) One Time Password
+# TDD Practise For OTP(one time password)
 
 ![otp](./src/main/resources/images/otp.png)
 

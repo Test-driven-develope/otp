@@ -10,16 +10,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @WebMvcTest(OtpController.class)
-public class OtpControllerTest extends ResourceTestBase {
+class OtpControllerTest extends ResourceTestBase {
     
     @Test
-    public void should_sent_otp_successfully() throws Exception {
+    void should_sent_otp_successfully() throws Exception {
+        OtpSendRequest request = OtpSendRequest.builder().phoneNumber("15342349111").build();
+
         this.mockMvc.perform(MockMvcRequestBuilders.
                         post("/otp")
-                        .content("{\"phoneNumber\": \"15342349111\"}")
+                        .content(toJson(request))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("验证码已发送"));
+                .andExpect(jsonPath("$.message").value("验证码已发送至手机号：15342349111"));
     }
 }

@@ -17,7 +17,7 @@ Request Body:
 Status: 201
 Response Body: 
 {
-  "message": "验证码已发送"
+  "message": "验证码已发送至手机号：15342349111"
 }
 ```
 

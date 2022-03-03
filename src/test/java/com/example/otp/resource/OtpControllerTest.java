@@ -1,21 +1,31 @@
 package com.example.otp.resource;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.otp.ResourceTestBase;
+import com.example.otp.service.OtpService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @WebMvcTest(OtpController.class)
 class OtpControllerTest extends ResourceTestBase {
     
+    @MockBean
+    private OtpService otpService;
+    
     @Test
     void should_sent_otp_successfully() throws Exception {
         OtpSendRequest request = OtpSendRequest.builder().phoneNumber("15342349111").build();
-
+        
+        ArgumentCaptor<OtpSendRequest> arg = ArgumentCaptor.forClass(OtpSendRequest.class);
+        
         this.mockMvc.perform(MockMvcRequestBuilders.
                         post("/otp")
                         .content(toJson(request))
@@ -23,5 +33,9 @@ class OtpControllerTest extends ResourceTestBase {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("验证码已发送至手机号：15342349111"));
+    
+        Mockito.verify(otpService).sendOtp(arg.capture());
+    
+        assertEquals("15342349111", arg.getValue().getPhoneNumber());
     }
 }

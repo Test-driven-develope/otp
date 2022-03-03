@@ -1,5 +1,7 @@
 package com.example.otp.resource;
 
+import com.example.otp.service.OtpService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,9 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/otp")
 public class OtpController {
     
+    @Autowired
+    private OtpService otpService;
+    
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity sendOtp(@RequestBody OtpSendRequest otpSendRequest) {
+        otpService.sendOtp(otpSendRequest);
+        
         return ResponseEntity.builder()
                 .message("验证码已发送至手机号：" + otpSendRequest.getPhoneNumber())
                 .build();

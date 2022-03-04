@@ -1,0 +1,21 @@
+{
+  "priority": 1,
+  "request": {
+    "url": "/sms/send",
+    "method": "POST",
+    "bodyPatterns": [
+      {
+        "equalToJson": {
+          "mobile": "phone number",
+          "message": "otp message"
+        }
+      }
+    ]
+  },
+  "response": {
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "status": 200
+  }
+}

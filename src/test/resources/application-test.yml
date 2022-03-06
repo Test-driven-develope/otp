@@ -1,2 +1,8 @@
 feign:
   url: "http://localhost:8550"
+
+spring:
+  redis:
+    host: localhost
+    port: 6388
+    database: 1

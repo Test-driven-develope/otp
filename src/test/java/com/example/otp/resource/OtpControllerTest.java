@@ -1,11 +1,15 @@
 package com.example.otp.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.otp.ResourceTestBase;
 import com.example.otp.service.OtpService;
+import com.example.otp.service.exception.SendOTPWithin60sException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -37,5 +41,19 @@ class OtpControllerTest extends ResourceTestBase {
         Mockito.verify(otpService).sendOtp(arg.capture());
     
         assertEquals("15342349111", arg.getValue().getPhoneNumber());
+    }
+    
+    @Test
+    void should_return_error_message_when_send_otp_in_60s() throws Exception {
+        OtpSendRequest request = OtpSendRequest.builder().phoneNumber("15342349111").build();
+    
+        doThrow(new SendOTPWithin60sException()).when(otpService).sendOtp(any());
+        this.mockMvc.perform(MockMvcRequestBuilders.
+                        post("/otp")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("不能连续发送验证码，请在60秒之后重试"));
     }
 }

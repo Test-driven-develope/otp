@@ -5,4 +5,5 @@ public class Constants {
     public static final int RANGE_BOUND = 10;
     public static final int OTP_LENGTH = 6;
     public static final Long OTP_TIME_OUT = 900L;
+    public static final Long SEND_OTP_MIN_INTERVAL = 60L;
 }

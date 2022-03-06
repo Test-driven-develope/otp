@@ -1,13 +1,17 @@
 package com.example.otp.service;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.example.otp.client.SmsClient;
 import com.example.otp.client.SmsRequestBody;
 import com.example.otp.persistence.OtpPo;
 import com.example.otp.persistence.OtpRepository;
 import com.example.otp.resource.OtpSendRequest;
+import com.example.otp.service.exception.SendOTPWithin60sException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,5 +45,14 @@ class OtpServiceTest {
         verify(smsClient).sendSMS(arg.capture());
         assertEquals(request.getPhoneNumber(), arg.getValue().getMobile());
         assertTrue(arg.getValue().getMessage().startsWith("[OTP] 亲爱的用户，您的一次性验证码为"));
+    }
+    
+    @Test
+    void should_throw_SendOTPWithin60sException_when_send_otp_in_60s() {
+        OtpSendRequest request = OtpSendRequest.builder().phoneNumber("15342349111").build();
+        OtpPo otpPo = OtpPo.builder().id(request.getPhoneNumber()).code("123456").timeOut(860).build();
+        when(otpRepository.findById(request.getPhoneNumber())).thenReturn(Optional.of(otpPo));
+        
+        assertThrows(SendOTPWithin60sException.class, () -> otpService.sendOtp(request));
     }
 }

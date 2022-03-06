@@ -6,6 +6,7 @@ import com.example.otp.domain.OtpModel;
 import com.example.otp.persistence.OtpPo;
 import com.example.otp.persistence.OtpRepository;
 import com.example.otp.resource.OtpSendRequest;
+import com.example.otp.service.exception.SendOTPWithin60sException;
 import com.example.otp.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,12 @@ public class OtpService {
     private OtpRepository otpRepository;
     
     public void sendOtp(OtpSendRequest request) {
+        otpRepository.findById(request.getPhoneNumber()).ifPresent(otpPo -> {
+            if (Constants.OTP_TIME_OUT - otpPo.getTimeOut() <= Constants.SEND_OTP_MIN_INTERVAL) {
+                throw new SendOTPWithin60sException();
+            }
+        });
+        
         OtpModel otp = new OtpModel(request.getPhoneNumber());
     
         OtpPo otpPo = OtpPo.builder()

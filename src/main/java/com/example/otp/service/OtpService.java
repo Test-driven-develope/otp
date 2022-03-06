@@ -1,5 +1,7 @@
 package com.example.otp.service;
 
+import java.util.Optional;
+
 import com.example.otp.client.SmsClient;
 import com.example.otp.client.SmsRequestBody;
 import com.example.otp.domain.OtpModel;
@@ -20,23 +22,36 @@ public class OtpService {
     private OtpRepository otpRepository;
     
     public void sendOtp(OtpSendRequest request) {
-        otpRepository.findById(request.getPhoneNumber()).ifPresent(otpPo -> {
+        final Optional<OtpPo> optionalOtpPo = otpRepository.findById(request.getPhoneNumber());
+        
+        if (optionalOtpPo.isPresent()) {
+            final OtpPo otpPo = optionalOtpPo.get();
             if (Constants.OTP_TIME_OUT - otpPo.getTimeOut() <= Constants.SEND_OTP_MIN_INTERVAL) {
                 throw new SendOTPWithin60sException();
             }
-        });
-        
-        OtpModel otp = new OtpModel(request.getPhoneNumber());
+            this.sendSMS(otpPo.getId(), otpPo.getCode());
+        } else {
+            final OtpModel otp = generateOtp(request);
+
+            this.sendSMS(otp.getPhoneNumber(), otp.getPhoneNumber());
+        }
+    }
     
+    private OtpModel generateOtp(OtpSendRequest request) {
+        OtpModel otp = new OtpModel(request.getPhoneNumber());
+        
         OtpPo otpPo = OtpPo.builder()
                 .id(otp.getPhoneNumber())
                 .code(otp.getOtp())
                 .timeOut(Constants.OTP_TIME_OUT).build();
         otpRepository.save(otpPo);
-
+        return otp;
+    }
+    
+    private void sendSMS(String mobile, String code) {
         SmsRequestBody smsRequestBody = SmsRequestBody.builder()
-                .mobile(otp.getPhoneNumber())
-                .message(Constants.OTP_MESSAGE + otp.getOtp()).build();
+                .mobile(mobile)
+                .message(Constants.OTP_MESSAGE + code).build();
         smsClient.sendSMS(smsRequestBody);
     }
 }

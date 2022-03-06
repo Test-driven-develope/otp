@@ -3,8 +3,8 @@ package com.example.otp.service;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import com.example.otp.client.SmsClient;
 import com.example.otp.client.SmsRequestBody;
@@ -12,6 +12,7 @@ import com.example.otp.persistence.OtpPo;
 import com.example.otp.persistence.OtpRepository;
 import com.example.otp.resource.OtpSendRequest;
 import com.example.otp.service.exception.SendOTPWithin60sException;
+import com.example.otp.utils.Constants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -44,7 +45,7 @@ class OtpServiceTest {
         assertEquals(900, argPo.getValue().getTimeOut());
         verify(smsClient).sendSMS(arg.capture());
         assertEquals(request.getPhoneNumber(), arg.getValue().getMobile());
-        assertTrue(arg.getValue().getMessage().startsWith("[OTP] 亲爱的用户，您的一次性验证码为"));
+        assertTrue(arg.getValue().getMessage().startsWith(Constants.OTP_MESSAGE));
     }
     
     @Test
@@ -54,5 +55,20 @@ class OtpServiceTest {
         when(otpRepository.findById(request.getPhoneNumber())).thenReturn(Optional.of(otpPo));
         
         assertThrows(SendOTPWithin60sException.class, () -> otpService.sendOtp(request));
+    }
+    
+    @Test
+    void should_send_same_otp_when_more_than_60s_less_than_900s() {
+        OtpSendRequest request = OtpSendRequest.builder().phoneNumber("15342349111").build();
+        OtpPo otpPo = OtpPo.builder().id(request.getPhoneNumber()).code("123456").timeOut(800).build();
+        when(otpRepository.findById(request.getPhoneNumber())).thenReturn(Optional.of(otpPo));
+        
+        ArgumentCaptor<SmsRequestBody> arg = ArgumentCaptor.forClass(SmsRequestBody.class);
+        
+        otpService.sendOtp(request);
+        
+        verify(smsClient).sendSMS(arg.capture());
+        assertEquals(request.getPhoneNumber(), arg.getValue().getMobile());
+        assertTrue(arg.getValue().getMessage().startsWith(Constants.OTP_MESSAGE + otpPo.getCode()));
     }
 }

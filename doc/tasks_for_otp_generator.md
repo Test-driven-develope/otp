@@ -54,27 +54,7 @@
 **4. 当验证码超过15min并未验证时，验证码将失效**
 - [ ] 修改Redis熟悉，添加过期删除
 
-**5. 当用户输入境外的手机号时，系统提示不支持境外手机号**
-- [ ] 给Controller添加校验：不支持境外手机号
-    ```bash
-    Request：{
-      URL: http://localhost:8080/otp
-      Method: POST
-      Request Body: 
-      {
-        "phoneNumber": "85215342349111"
-      }
-    }
-    Response: {
-      Status: 400
-      Response Body:
-      {
-         "message": "目前该系统仅支持境内手机号"
-      }
-    }
-    ```
-
-**6. 当用户输入错误的手机号码时，提示错误消息。**
+**5. 当用户输入输入境外的手机号或错误的手机号码时，提示错误消息。**
 - [ ] 给Controller添加校验：正确的境内手机号
     ```bash
     Request：{

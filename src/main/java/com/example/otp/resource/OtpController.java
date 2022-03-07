@@ -1,8 +1,11 @@
 package com.example.otp.resource;
 
+import javax.validation.Valid;
+
 import com.example.otp.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/otp")
+@Validated
 public class OtpController {
     
     @Autowired
@@ -18,7 +22,7 @@ public class OtpController {
     
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity sendOtp(@RequestBody OtpSendRequest otpSendRequest) {
+    public ResponseEntity sendOtp(@Valid @RequestBody OtpSendRequest otpSendRequest) {
         otpService.sendOtp(otpSendRequest);
         
         return ResponseEntity.builder()

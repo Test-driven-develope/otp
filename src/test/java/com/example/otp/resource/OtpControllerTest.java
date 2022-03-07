@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.otp.ResourceTestBase;
 import com.example.otp.service.OtpService;
 import com.example.otp.service.exception.SendOTPWithin60sException;
+import com.example.otp.service.exception.VerifyOtpFailed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -90,5 +91,50 @@ class OtpControllerTest extends ResourceTestBase {
         Mockito.verify(otpService).verifyOtp(arg.capture());
         assertEquals("15342349111", arg.getValue().getPhoneNumber());
         assertEquals("123456", arg.getValue().getOtp());
+    }
+    
+    @Test
+    void should_verify_failed_with_illegal_otp() throws Exception {
+        OtpVerificationRequest otpVerificationRequest = OtpVerificationRequest.builder()
+                .phoneNumber("15342349111")
+                .otp("safd").build();
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.
+                        delete("/otp")
+                        .content(toJson(otpVerificationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("验证码有误，验证失败，请输入正确的验证码或重新获取验证码验证"));
+    }
+    
+    @Test
+    void should_verify_failed_with_illegal_phone_number() throws Exception {
+        OtpVerificationRequest otpVerificationRequest = OtpVerificationRequest.builder()
+                .phoneNumber("sdfsaf")
+                .otp("123456").build();
+        
+        this.mockMvc.perform(MockMvcRequestBuilders.
+                        delete("/otp")
+                        .content(toJson(otpVerificationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("手机号输入有误，请重新输入"));
+    }
+    
+    @Test
+    void should_verify_failed_with_error_otp() throws Exception {
+        OtpVerificationRequest otpVerificationRequest = OtpVerificationRequest.builder()
+                .phoneNumber("15342349100")
+                .otp("123456").build();
+        doThrow(new VerifyOtpFailed()).when(otpService).verifyOtp(any());
+        this.mockMvc.perform(MockMvcRequestBuilders.
+                        delete("/otp")
+                        .content(toJson(otpVerificationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("验证码有误，验证失败，请输入正确的验证码或重新获取验证码验证"));
     }
 }

@@ -33,7 +33,7 @@ public class OtpController {
     
     @DeleteMapping()
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity verifyOtp(@RequestBody OtpVerificationRequest otpVerificationRequest) {
+    public ResponseEntity verifyOtp(@Valid @RequestBody OtpVerificationRequest otpVerificationRequest) {
         otpService.verifyOtp(otpVerificationRequest);
         
         return ResponseEntity.builder()

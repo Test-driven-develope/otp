@@ -3,7 +3,6 @@ package com.example.otp.service;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.example.otp.client.SmsClient;
@@ -13,6 +12,7 @@ import com.example.otp.persistence.OtpRepository;
 import com.example.otp.resource.OtpSendRequest;
 import com.example.otp.resource.OtpVerificationRequest;
 import com.example.otp.service.exception.SendOTPWithin60sException;
+import com.example.otp.service.exception.VerifyOtpFailed;
 import com.example.otp.utils.Constants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,10 +82,34 @@ class OtpServiceTest {
         OtpPo otpPo = OtpPo.builder().id(otpVerificationRequest.getPhoneNumber()).code("123456").timeOut(800).build();
         when(otpRepository.findById(otpVerificationRequest.getPhoneNumber())).thenReturn(Optional.of(otpPo));
         ArgumentCaptor<OtpPo> arg = ArgumentCaptor.forClass(OtpPo.class);
-        assertDoesNotThrow(() -> otpService.verifyOtp(otpVerificationRequest));
+        boolean result = otpService.verifyOtp(otpVerificationRequest);
         
         verify(otpRepository).delete(arg.capture());
+        assertEquals(true, result);
         assertEquals(otpVerificationRequest.getPhoneNumber(), arg.getValue().getId());
         assertEquals(otpVerificationRequest.getOtp(), arg.getValue().getCode());
+    }
+    
+    @Test
+    void should_verify_failed_when_input_error_otp() {
+        OtpVerificationRequest otpVerificationRequest = OtpVerificationRequest.builder()
+                .phoneNumber("15342349111")
+                .otp("123456").build();
+    
+        OtpPo otpPo = OtpPo.builder().id(otpVerificationRequest.getPhoneNumber()).code("123455").timeOut(800).build();
+        when(otpRepository.findById(otpVerificationRequest.getPhoneNumber())).thenReturn(Optional.of(otpPo));
+
+        assertThrows(VerifyOtpFailed.class, () -> otpService.verifyOtp(otpVerificationRequest));
+    }
+    
+    @Test
+    void should_verify_failed_when_input_error_phone_number() {
+        OtpVerificationRequest otpVerificationRequest = OtpVerificationRequest.builder()
+                .phoneNumber("15342349111")
+                .otp("123456").build();
+        
+        when(otpRepository.findById(otpVerificationRequest.getPhoneNumber())).thenReturn(Optional.empty());
+        
+        assertThrows(VerifyOtpFailed.class, () -> otpService.verifyOtp(otpVerificationRequest));
     }
 }

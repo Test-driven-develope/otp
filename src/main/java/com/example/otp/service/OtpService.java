@@ -10,6 +10,7 @@ import com.example.otp.persistence.OtpRepository;
 import com.example.otp.resource.OtpSendRequest;
 import com.example.otp.resource.OtpVerificationRequest;
 import com.example.otp.service.exception.SendOTPWithin60sException;
+import com.example.otp.service.exception.VerifyOtpFailed;
 import com.example.otp.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,12 +39,14 @@ public class OtpService {
         }
     }
     
-    public void verifyOtp(OtpVerificationRequest otpVerificationRequest) {
-        otpRepository.findById(otpVerificationRequest.getPhoneNumber()).ifPresent(otp -> {
-            if (otpVerificationRequest.getOtp().equals(otp.getCode())) {
-                otpRepository.delete(otp);
+    public boolean verifyOtp(OtpVerificationRequest otpVerificationRequest) {
+        return otpRepository.findById(otpVerificationRequest.getPhoneNumber()).map(otp -> {
+            if (!otpVerificationRequest.getOtp().equals(otp.getCode())) {
+                throw new VerifyOtpFailed();
             }
-        });
+            otpRepository.delete(otp);
+            return true;
+        }).orElseThrow(VerifyOtpFailed::new);
     }
     
     private OtpModel generateOtp(OtpSendRequest request) {

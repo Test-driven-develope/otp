@@ -11,7 +11,7 @@ import com.example.otp.ResourceTestBase;
 import com.example.otp.service.OtpService;
 import com.example.otp.service.exception.SendOTPWithin60sException;
 import com.example.otp.service.exception.VerifyOtpFailed;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.example.otp.utils.Constants;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -38,17 +38,17 @@ class OtpControllerTest extends ResourceTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("验证码已发送至手机号：15342349111"));
-    
+                .andExpect(jsonPath("$.message").value(Constants.SEND_OTP_TO_PHONE + request.getPhoneNumber()));
+        
         Mockito.verify(otpService).sendOtp(arg.capture());
-    
+        
         assertEquals("15342349111", arg.getValue().getPhoneNumber());
     }
     
     @Test
     void should_return_error_message_when_send_otp_in_60s() throws Exception {
         OtpSendRequest request = OtpSendRequest.builder().phoneNumber("15342349111").build();
-    
+        
         doThrow(new SendOTPWithin60sException()).when(otpService).sendOtp(any());
         this.mockMvc.perform(MockMvcRequestBuilders.
                         post("/otp")
@@ -56,13 +56,13 @@ class OtpControllerTest extends ResourceTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("不能连续发送验证码，请在60秒之后重试"));
+                .andExpect(jsonPath("$.message").value(Constants.CAN_NOT_SEND_OTP_WITH_60S));
     }
     
     @Test
     void should_validate_failed_when_input_error_phone_number() throws Exception {
         OtpSendRequest request = OtpSendRequest.builder().phoneNumber("eee3334").build();
-    
+        
         doNothing().when(otpService).sendOtp(any());
         this.mockMvc.perform(MockMvcRequestBuilders.
                         post("/otp")
@@ -70,7 +70,7 @@ class OtpControllerTest extends ResourceTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("手机号输入有误，请重新输入"));
+                .andExpect(jsonPath("$.message").value(Constants.ERROR_PHONE_NUMBER));
     }
     
     @Test
@@ -79,15 +79,15 @@ class OtpControllerTest extends ResourceTestBase {
                 .phoneNumber("15342349111")
                 .otp("123456").build();
         ArgumentCaptor<OtpVerificationRequest> arg = ArgumentCaptor.forClass(OtpVerificationRequest.class);
-
+        
         this.mockMvc.perform(MockMvcRequestBuilders.
                         delete("/otp")
                         .content(toJson(otpVerificationRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("验证成功"));
-    
+                .andExpect(jsonPath("$.message").value(Constants.VERIFY_SUCCESSFULLY));
+        
         Mockito.verify(otpService).verifyOtp(arg.capture());
         assertEquals("15342349111", arg.getValue().getPhoneNumber());
         assertEquals("123456", arg.getValue().getOtp());
@@ -105,7 +105,7 @@ class OtpControllerTest extends ResourceTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("验证码有误，验证失败，请输入正确的验证码或重新获取验证码验证"));
+                .andExpect(jsonPath("$.message").value(Constants.ERROR_OTP));
     }
     
     @Test
@@ -120,7 +120,7 @@ class OtpControllerTest extends ResourceTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("手机号输入有误，请重新输入"));
+                .andExpect(jsonPath("$.message").value(Constants.ERROR_PHONE_NUMBER));
     }
     
     @Test
@@ -135,6 +135,6 @@ class OtpControllerTest extends ResourceTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("验证码有误，验证失败，请输入正确的验证码或重新获取验证码验证"));
+                .andExpect(jsonPath("$.message").value(Constants.ERROR_OTP));
     }
 }

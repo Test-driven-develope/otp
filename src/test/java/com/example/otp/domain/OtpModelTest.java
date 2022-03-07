@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.example.otp.utils.Constants;
 import org.junit.jupiter.api.Test;
 
 class OtpModelTest {
@@ -14,7 +15,7 @@ class OtpModelTest {
         
         assertFalse(otpModel.isVerified());
         assertNotNull(otpModel.getOtp());
-        assertTrue(Pattern.compile("\\d{6}").matcher(otpModel.getOtp()).matches());
+        assertTrue(Pattern.compile(Constants.VERIFY_OTP_REGEX).matcher(otpModel.getOtp()).matches());
     }
     
 }

@@ -3,6 +3,7 @@ package com.example.otp.resource;
 import javax.validation.Valid;
 
 import com.example.otp.service.OtpService;
+import com.example.otp.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -27,7 +28,7 @@ public class OtpController {
         otpService.sendOtp(otpSendRequest);
         
         return ResponseEntity.builder()
-                .message("验证码已发送至手机号：" + otpSendRequest.getPhoneNumber())
+                .message(Constants.SEND_OTP_TO_PHONE + otpSendRequest.getPhoneNumber())
                 .build();
     }
     
@@ -37,6 +38,6 @@ public class OtpController {
         otpService.verifyOtp(otpVerificationRequest);
         
         return ResponseEntity.builder()
-                .message("验证成功").build();
+                .message(Constants.VERIFY_SUCCESSFULLY).build();
     }
 }

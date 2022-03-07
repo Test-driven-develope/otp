@@ -8,6 +8,7 @@ import com.example.otp.domain.OtpModel;
 import com.example.otp.persistence.OtpPo;
 import com.example.otp.persistence.OtpRepository;
 import com.example.otp.resource.OtpSendRequest;
+import com.example.otp.resource.OtpVerificationRequest;
 import com.example.otp.service.exception.SendOTPWithin60sException;
 import com.example.otp.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +33,13 @@ public class OtpService {
             this.sendSMS(otpPo.getId(), otpPo.getCode());
         } else {
             final OtpModel otp = generateOtp(request);
-
+            
             this.sendSMS(otp.getPhoneNumber(), otp.getPhoneNumber());
         }
+    }
+    
+    public void verifyOtp(OtpVerificationRequest otpVerificationRequest) {
+    
     }
     
     private OtpModel generateOtp(OtpSendRequest request) {

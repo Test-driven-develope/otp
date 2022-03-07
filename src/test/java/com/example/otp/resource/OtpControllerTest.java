@@ -71,4 +71,24 @@ class OtpControllerTest extends ResourceTestBase {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("手机号输入有误，请重新输入"));
     }
+    
+    @Test
+    void should_can_verify_otp_successfully() throws Exception {
+        OtpVerificationRequest otpVerificationRequest = OtpVerificationRequest.builder()
+                .phoneNumber("15342349111")
+                .otp("123456").build();
+        ArgumentCaptor<OtpVerificationRequest> arg = ArgumentCaptor.forClass(OtpVerificationRequest.class);
+
+        this.mockMvc.perform(MockMvcRequestBuilders.
+                        delete("/otp")
+                        .content(toJson(otpVerificationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("验证成功"));
+    
+        Mockito.verify(otpService).verifyOtp(arg.capture());
+        assertEquals("15342349111", arg.getValue().getPhoneNumber());
+        assertEquals("123456", arg.getValue().getOtp());
+    }
 }

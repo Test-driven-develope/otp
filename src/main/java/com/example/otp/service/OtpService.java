@@ -39,7 +39,11 @@ public class OtpService {
     }
     
     public void verifyOtp(OtpVerificationRequest otpVerificationRequest) {
-    
+        otpRepository.findById(otpVerificationRequest.getPhoneNumber()).ifPresent(otp -> {
+            if (otpVerificationRequest.getOtp().equals(otp.getCode())) {
+                otpRepository.delete(otp);
+            }
+        });
     }
     
     private OtpModel generateOtp(OtpSendRequest request) {

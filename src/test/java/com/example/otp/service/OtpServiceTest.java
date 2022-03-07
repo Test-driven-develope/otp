@@ -11,6 +11,7 @@ import com.example.otp.client.SmsRequestBody;
 import com.example.otp.persistence.OtpPo;
 import com.example.otp.persistence.OtpRepository;
 import com.example.otp.resource.OtpSendRequest;
+import com.example.otp.resource.OtpVerificationRequest;
 import com.example.otp.service.exception.SendOTPWithin60sException;
 import com.example.otp.utils.Constants;
 import org.junit.jupiter.api.Test;
@@ -70,5 +71,21 @@ class OtpServiceTest {
         verify(smsClient).sendSMS(arg.capture());
         assertEquals(request.getPhoneNumber(), arg.getValue().getMobile());
         assertTrue(arg.getValue().getMessage().startsWith(Constants.OTP_MESSAGE + otpPo.getCode()));
+    }
+    
+    @Test
+    void should_verify_otp_successfully() {
+        OtpVerificationRequest otpVerificationRequest = OtpVerificationRequest.builder()
+                .phoneNumber("15342349111")
+                .otp("123456").build();
+    
+        OtpPo otpPo = OtpPo.builder().id(otpVerificationRequest.getPhoneNumber()).code("123456").timeOut(800).build();
+        when(otpRepository.findById(otpVerificationRequest.getPhoneNumber())).thenReturn(Optional.of(otpPo));
+        ArgumentCaptor<OtpPo> arg = ArgumentCaptor.forClass(OtpPo.class);
+        assertDoesNotThrow(() -> otpService.verifyOtp(otpVerificationRequest));
+        
+        verify(otpRepository).delete(arg.capture());
+        assertEquals(otpVerificationRequest.getPhoneNumber(), arg.getValue().getId());
+        assertEquals(otpVerificationRequest.getOtp(), arg.getValue().getCode());
     }
 }

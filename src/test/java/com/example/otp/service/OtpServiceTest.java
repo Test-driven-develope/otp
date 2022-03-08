@@ -7,10 +7,13 @@ import static org.mockito.Mockito.*;
 
 import com.example.otp.client.SmsClient;
 import com.example.otp.client.SmsRequestBody;
+import com.example.otp.persistence.AccountPo;
+import com.example.otp.persistence.AccountRepository;
 import com.example.otp.persistence.OtpPo;
 import com.example.otp.persistence.OtpRepository;
 import com.example.otp.resource.OtpSendRequest;
 import com.example.otp.resource.OtpVerificationRequest;
+import com.example.otp.service.exception.RepeatVerificationException;
 import com.example.otp.service.exception.SendOTPWithin60sException;
 import com.example.otp.service.exception.VerifyOtpFailed;
 import com.example.otp.utils.Constants;
@@ -31,6 +34,9 @@ class OtpServiceTest {
     
     @Mock
     private OtpRepository otpRepository;
+    
+    @Mock
+    private AccountRepository accountRepository;
     
     @Test
     void should_can_send_otp_and_save_otp_code() {
@@ -82,7 +88,12 @@ class OtpServiceTest {
         OtpPo otpPo = OtpPo.builder().id(otpVerificationRequest.getPhoneNumber()).code("123456").timeOut(800).build();
         when(otpRepository.findById(otpVerificationRequest.getPhoneNumber())).thenReturn(Optional.of(otpPo));
         ArgumentCaptor<OtpPo> arg = ArgumentCaptor.forClass(OtpPo.class);
+        ArgumentCaptor<AccountPo> arg1 = ArgumentCaptor.forClass(AccountPo.class);
+        
         boolean result = otpService.verifyOtp(otpVerificationRequest);
+        
+        verify(accountRepository).save(arg1.capture());
+        assertEquals(otpVerificationRequest.getPhoneNumber(), arg1.getValue().getPhoneNumber());
         
         verify(otpRepository).delete(arg.capture());
         assertEquals(true, result);
@@ -111,5 +122,16 @@ class OtpServiceTest {
         when(otpRepository.findById(otpVerificationRequest.getPhoneNumber())).thenReturn(Optional.empty());
         
         assertThrows(VerifyOtpFailed.class, () -> otpService.verifyOtp(otpVerificationRequest));
+    }
+    
+    @Test
+    void should_can_not_repeat_verify() {
+        OtpVerificationRequest otpVerificationRequest = OtpVerificationRequest.builder()
+                .phoneNumber("15342349111")
+                .otp("123456").build();
+        when(accountRepository.findByPhoneNumber(otpVerificationRequest.getPhoneNumber()))
+                .thenReturn(Optional.of(AccountPo.builder().build()));
+
+        assertThrows(RepeatVerificationException.class, () -> otpService.verifyOtp(otpVerificationRequest));
     }
 }

@@ -9,8 +9,9 @@ public class Constants {
     public final static String SEND_OTP_TO_PHONE = "验证码已发送至手机号：";
     public static final int RANGE_BOUND = 10;
     public static final int OTP_LENGTH = 6;
-    public static final Long OTP_TIME_OUT = 90L;
+    public static final Long OTP_TIME_OUT = 900L;
     public static final Long SEND_OTP_MIN_INTERVAL = 60L;
     public static final String VERIFY_PHONE_NUMBER_REGEX = "^1(3\\d|4[5-9]|5[0-35-9]|6[567]|7[0-8]|8\\d|9[0-35-9])\\d{8}$";
     public static final String VERIFY_OTP_REGEX = "\\d{6}";
+    public static final String CAN_NOT_REPEAT_VERIFY = "此手机号已经被验证成功，无需再次验证";
 }

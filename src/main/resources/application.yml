@@ -2,6 +2,12 @@ feign:
   url: "https://wwww.mou.com"
 
 spring:
+  flyway:
+    out-of-order: true
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/tdd_otp?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8
+    username: root
+    password: password
   redis:
     host: localhost
     port: 6379

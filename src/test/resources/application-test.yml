@@ -6,3 +6,5 @@ spring:
     host: localhost
     port: 6388
     database: 1
+  datasource:
+    url: jdbc:tc:mysql:8.0.24:///tdd_otp?serverTimezone=UTC&useLegacyDatetimeCode=false&useUnicode=true&characterEncoding=utf8
